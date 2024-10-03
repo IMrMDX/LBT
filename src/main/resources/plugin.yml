@@ -1,0 +1,4 @@
+name: LBT
+version: '1.0-SNAPSHOT'
+main: com.dt.lBT.Main
+api-version: '1.21'
