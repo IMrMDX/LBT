@@ -1,5 +1,6 @@
-package com.dt.lBT;
+package com.dt.lBT.config;
 
+import com.dt.lBT.Main;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;

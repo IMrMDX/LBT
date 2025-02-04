@@ -1,6 +1,6 @@
-package com.dt.lBT.config;
+package com.dt.lBT;
 
-import com.dt.lBT.Main;
+import com.dt.lBT.uis.LBTGUI;
 import com.dt.lBT.utils.TextHandler;
 import com.dt.lBT.utils.command.Command;
 import com.dt.lBT.utils.command.CommandInfo;
@@ -35,7 +35,9 @@ public class LBTCommand extends Command<CommandSender> {
 
                      break;
                     case "gui":
-                        commandSender.sendMessage(TextHandler.format("&cHi"));
+                        if (commandSender instanceof  Player player){
+                            new LBTGUI().getSmartInventory().open(player);
+                        }
                         break;
                     default:
                         commandSender.sendMessage(TextHandler.format("&cInvalid Argument, &6Usage:/lbt <reloadconfig/gui>"));

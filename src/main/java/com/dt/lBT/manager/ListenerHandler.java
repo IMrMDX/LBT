@@ -1,8 +1,8 @@
-package com.dt.guildGate.manager;
+package com.dt.lBT.manager;
 
 
 
-import com.dt.guildGate.Main;
+import com.dt.lBT.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 

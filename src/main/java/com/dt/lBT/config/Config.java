@@ -1,4 +1,4 @@
-package com.dt.lBT;
+package com.dt.lBT.config;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 

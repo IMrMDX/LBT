@@ -1,4 +1,4 @@
-package com.dt.guildGate.utils.command;
+package com.dt.lBT.utils.command;
 
 
 import lombok.NonNull;

@@ -1,6 +1,8 @@
-package com.babyless.shyo5.dev.utils;
+package com.dt.lBT.utils;
 
 
+import com.cryptomorin.xseries.XItemStack;
+import com.cryptomorin.xseries.XMaterial;
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,68 +27,107 @@ public class ItemBuilder {
 
     private ItemStack item;
     private ItemMeta meta;
-    private Material material;
+    private XMaterial material;
     private int amount = 1;
-    private MaterialData data;
     private short damage = 0;
     private Map<Enchantment, Integer> enchantments = new HashMap<>();
     private String displayname;
     private List<String> lore = new ArrayList<>();
     private List<ItemFlag> flags = new ArrayList<>();
-
     private boolean andSymbol = true;
     private boolean unsafeStackSize = false;
-
+    private MaterialData data;
     /**
-     * Initalizes the ItemBuilder with {@link org.bukkit.Material}
+     * Initalizes the ItemBuilder with {@link Material}
      */
-    public ItemBuilder(Material material) {
-        if (material == null) material = Material.AIR;
-        this.item = new ItemStack(material);
+    public ItemBuilder(XMaterial material) {
+        if (material == null) material = XMaterial.AIR;
+
+        // Parse the material and log debug info
+        this.item = material.parseItem();
+        if (this.item == null) {
+            System.out.println("Error: Failed to parse material " + material.name() + ". Defaulting to AIR.");
+            this.item = new ItemStack(Material.AIR); // Fallback
+        }
+
         this.material = material;
+        this.meta = this.item.getItemMeta(); // Set meta for later use
     }
 
     /**
-     * Initalizes the ItemBuilder with {@link org.bukkit.Material} and Amount
+     * Initalizes the ItemBuilder with {@link Material} and Amount
      */
-    public ItemBuilder(Material material, int amount) {
-        if (material == null) material = Material.AIR;
-        if (((amount > material.getMaxStackSize()) || (amount <= 0)) && (!unsafeStackSize)) amount = 1;
+    public ItemBuilder(XMaterial material, int amount) {
+        if (material == null) material = XMaterial.AIR;
+
+        // Parse the material
+        this.item = material.parseItem();
+        if (this.item == null) {
+            System.out.println("Error: Failed to parse material " + material.name() + ". Defaulting to AIR.");
+            this.item = new ItemStack(Material.AIR); // Fallback
+        }
+
+        // Check stack size
+        if ((amount > this.item.getMaxStackSize()) || (amount <= 0)) {
+            if (!unsafeStackSize) amount = 1;
+        }
+
         this.amount = amount;
-        this.item = new ItemStack(material, amount);
+        this.item.setAmount(amount);
         this.material = material;
+        this.meta = this.item.getItemMeta();
     }
-
     /**
-     * Initalizes the ItemBuilder with {@link org.bukkit.Material}, Amount and Displayname
+     * Initalizes the ItemBuilder with {@link Material}, Amount and Displayname
      */
-    public ItemBuilder(Material material, int amount, String displayname) {
-        if (material == null) material = Material.AIR;
-        this.item = new ItemStack(material, amount);
-        this.material = material;
-        if (((amount > material.getMaxStackSize()) || (amount <= 0)) && (!unsafeStackSize)) amount = 1;
+    public ItemBuilder(XMaterial material, int amount, String displayname) {
+        if (material == null) material = XMaterial.AIR;
+
+        // Parse the material
+        this.item = material.parseItem();
+        if (this.item == null) {
+            System.out.println("Error: Failed to parse material " + material.name() + ". Defaulting to AIR.");
+            this.item = new ItemStack(Material.AIR); // Fallback
+        }
+
+        // Check stack size
+        if ((amount > this.item.getMaxStackSize()) || (amount <= 0) && (!unsafeStackSize)) amount = 1;
         this.amount = amount;
-        this.displayname = ChatColor.translateAlternateColorCodes('&', displayname);
-    }
+        this.item.setAmount(amount);
 
-    /**
-     * Initalizes the ItemBuilder with {@link org.bukkit.Material} and Displayname
-     */
-    public ItemBuilder(Material material, String displayname) {
-        if (material == null) material = Material.AIR;
-        this.item = new ItemStack(material);
+        // Set the display name
+        this.displayname = ChatColor.translateAlternateColorCodes('&', displayname);
         this.material = material;
-        this.displayname = ChatColor.translateAlternateColorCodes('&', displayname);
+        this.meta = this.item.getItemMeta();
+        if (this.meta != null) {
+            this.meta.setDisplayName(this.displayname);
+            this.item.setItemMeta(this.meta);
+        }
     }
 
     /**
-     * Initalizes the ItemBuilder with a {@link org.bukkit.inventory.ItemStack}
+     * Initalizes the ItemBuilder with {@link Material} and Displayname
+     */
+    public ItemBuilder(XMaterial material, String displayname) {
+        if (material == null) material = XMaterial.AIR;
+
+        this.item = material.parseItem();
+        if (this.item == null) {
+            this.item = new ItemStack(Material.AIR);
+        }
+
+        this.material = material;
+        this.displayname = TextHandler.colorize(displayname);
+    }
+
+    /**
+     * Initalizes the ItemBuilder with a {@link ItemStack}
      */
     public ItemBuilder(ItemStack item) {
         this.item = item;
         if (item.hasItemMeta())
             this.meta = item.getItemMeta();
-        this.material = item.getType();
+        this.material = XMaterial.matchXMaterial(item.getType());
         this.amount = item.getAmount();
         this.data = item.getData();
         this.damage = item.getDurability();
@@ -102,11 +143,12 @@ public class ItemBuilder {
     }
 
     /**
-     * Initalizes the ItemBuilder with a {@link org.bukkit.configuration.file.FileConfiguration} ItemStack in Path
+     * Initalizes the ItemBuilder with a {@link FileConfiguration} ItemStack in Path
      */
     public ItemBuilder(FileConfiguration cfg, String path) {
         this(cfg.getItemStack(path));
     }
+
 
     /**
      * @deprecated Use the already initalized {@code ItemBuilder} Instance to improve performance
@@ -132,13 +174,13 @@ public class ItemBuilder {
      * @param amount Amount for the ItemStack
      */
     public ItemBuilder amount(int amount) {
-        if (((amount > material.getMaxStackSize()) || (amount <= 0)) && (!unsafeStackSize)) amount = 1;
+        if (((amount > material.parseItem().getMaxStackSize()) || (amount <= 0)) && (!unsafeStackSize)) amount = 1;
         this.amount = amount;
         return this;
     }
 
     /**
-     * Sets the {@link org.bukkit.material.MaterialData} of the ItemStack
+     * Sets the {@link MaterialData} of the ItemStack
      *
      * @param data MaterialData for the ItemStack
      */
@@ -170,17 +212,17 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets the {@link org.bukkit.Material} of the ItemStack
+     * Sets the {@link Material} of the ItemStack
      *
      * @param material Material for the ItemStack
      */
     public ItemBuilder material(Material material) {
-        this.material = material;
+        this.material = XMaterial.matchXMaterial(material);
         return this;
     }
 
     /**
-     * Sets the {@link org.bukkit.inventory.meta.ItemMeta} of the ItemStack
+     * Sets the {@link ItemMeta} of the ItemStack
      *
      * @param meta Meta for the ItemStack
      */
@@ -190,7 +232,7 @@ public class ItemBuilder {
     }
 
     /**
-     * Adds a {@link org.bukkit.enchantments.Enchantment} to the ItemStack
+     * Adds a {@link Enchantment} to the ItemStack
      *
      * @param enchant Enchantment for the ItemStack
      * @param level   Level of the Enchantment
@@ -201,7 +243,7 @@ public class ItemBuilder {
     }
 
     /**
-     * Adds a list of {@link org.bukkit.enchantments.Enchantment} to the ItemStack
+     * Adds a list of {@link Enchantment} to the ItemStack
      *
      * @param enchantments Map containing Enchantment and Level for the ItemStack
      */
@@ -249,7 +291,7 @@ public class ItemBuilder {
     @Deprecated
     public ItemBuilder lores(String... lines) {
         for (String line : lines) {
-            lore(andSymbol ? TextHandler.hex(line) : line);
+            lore(andSymbol ? TextHandler.colorize(line) : line);
         }
         return this;
     }
@@ -278,7 +320,7 @@ public class ItemBuilder {
     }
 
     /**
-     * Adds a {@link org.bukkit.inventory.ItemFlag} to the ItemStack
+     * Adds a {@link ItemFlag} to the ItemStack
      *
      * @param flag ItemFlag for the ItemStack
      */
@@ -288,7 +330,7 @@ public class ItemBuilder {
     }
 
     /**
-     * Adds more than one {@link org.bukkit.inventory.ItemFlag} to the ItemStack
+     * Adds more than one {@link ItemFlag} to the ItemStack
      *
      * @param flags List containing all ItemFlags
      */
@@ -307,7 +349,7 @@ public class ItemBuilder {
      * Makes the ItemStack Glow like it had a Enchantment
      */
     public ItemBuilder glow() {
-        enchant(material != Material.BOW ? Enchantment.ARROW_INFINITE : Enchantment.LUCK, 10);
+        enchant(material != XMaterial.BOW ? Enchantment.INFINITY : Enchantment.LUCK_OF_THE_SEA, 10);
         flag(ItemFlag.HIDE_ENCHANTS);
         return this;
     }
@@ -320,7 +362,7 @@ public class ItemBuilder {
      */
 
     public ItemBuilder owner(String user) {
-        if (material == Material.PLAYER_HEAD) {
+        if (material == XMaterial.PLAYER_HEAD) {
             SkullMeta smeta = (SkullMeta) meta;
             smeta.setOwner(user);
             item.setItemMeta(meta);
@@ -444,7 +486,7 @@ public class ItemBuilder {
     /**
      * Returns the Material
      */
-    public Material getMaterial() {
+    public XMaterial getMaterial() {
         return material;
     }
 
@@ -562,10 +604,10 @@ public class ItemBuilder {
     }
 
     /**
-     * Converts the ItemBuilder to a {@link org.bukkit.inventory.ItemStack}
+     * Converts the ItemBuilder to a {@link ItemStack}
      */
     public ItemStack build() {
-        item.setType(material);
+        item.setType(material.parseMaterial());
         item.setAmount(amount);
         item.setDurability(damage);
         meta = item.getItemMeta();

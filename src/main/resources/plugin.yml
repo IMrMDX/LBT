@@ -1,4 +1,11 @@
-name: LBT
-version: '1.0-SNAPSHOT'
+name: ntd-LBT
+version: '1.0.6'
 main: com.dt.lBT.Main
-api-version: '1.21'
+author: MrMDX
+api-version: '1.13'
+depend:
+  - ntdLuckyBlock
+softdepend:
+  - PlaceholderAPI
+commands:
+  lbt:

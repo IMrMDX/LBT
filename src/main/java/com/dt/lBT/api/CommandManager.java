@@ -1,6 +1,6 @@
-package com.dt.guildGate.api;
+package com.dt.lBT.api;
 
-import com.dt.guildGate.utils.command.Command;
+import com.dt.lBT.utils.command.Command;
 import org.bukkit.plugin.Plugin;
 
 /**

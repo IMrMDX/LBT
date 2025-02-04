@@ -1,4 +1,4 @@
-package com.dt.lBT;
+package com.dt.lBT.utils;
 
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;

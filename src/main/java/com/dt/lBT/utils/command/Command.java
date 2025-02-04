@@ -1,7 +1,7 @@
-package com.dt.guildGate.utils.command;
+package com.dt.lBT.utils.command;
 
 
-import com.dt.guildGate.utils.TextHandler;
+import com.dt.lBT.utils.TextHandler;
 import lombok.Getter;
 import lombok.NonNull;
 import org.bukkit.command.CommandExecutor;

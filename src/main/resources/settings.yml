@@ -1,5 +1,54 @@
-#SECONDS AND ONLY USE INTEGER
-
+# It uses seconds and only integer
 givetimer: 45
 
+# You can choose that give tasks can be per player which means that every player has his own timer or
+# All players has the same timer
+# True = Every player has his own timer
+# False = All players has the same timer
+per-player-timer: false
 
+# Enable per-color timer (each color has its own cooldown per player)
+per-color-timer: true
+# Make sure to write them the right way
+colors:
+  Red:
+    time-value: 10
+    time-unit: seconds
+  Blue:
+    time-value: 10
+    time-unit: seconds
+  Green:
+    time-value: 10
+    time-unit: seconds
+  Yellow:
+    time-value: 10
+    time-unit: seconds
+
+# Enable or disable the daily limit based on player permissions
+limits-enabled: true
+
+# This message appears if the player reaches the limit of the luckyblock count
+# Get the player limit count => {limit}
+reached_limit_message: "&cYou reached your limit of luckyblocks. &e{limit}"
+
+# Set when the limits reset
+reset-interval:
+  time-value: 30
+  time-unit: seconds
+
+# Limit how much luckyblocks a player can have
+limits:
+  default:
+    permission: "lb.default"
+    dailyLimit: 5
+  vip:
+    permission: "lb.vip"
+    dailyLimit: 10
+  ultra:
+    permission: "lb.ultra"
+    dailyLimit: 20
+
+# YOU MUST NOT CHANGE THIS VALUE (unlimited)
+  unlimited:
+    permission: "lb.unlimited"
+    dailyLimit: -1
