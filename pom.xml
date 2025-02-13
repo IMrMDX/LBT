@@ -6,7 +6,7 @@
 
     <groupId>com.dt</groupId>
     <artifactId>ntd-LBT</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.8</version>
     <packaging>jar</packaging>
 
     <name>ntd-LBT</name>

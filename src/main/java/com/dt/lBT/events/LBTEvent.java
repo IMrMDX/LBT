@@ -2,8 +2,6 @@ package com.dt.lBT.events;
 
 import com.dt.lBT.manager.LeaderBoardManager;
 import me.DenBeKKer.ntdLuckyBlock.api.events.LuckyBlockBreakEvent;
-import me.DenBeKKer.ntdLuckyBlock.variables.LuckyBlock;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

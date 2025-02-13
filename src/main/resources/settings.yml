@@ -1,5 +1,5 @@
 # It uses seconds and only integer
-givetimer: 45
+givetimer: 10
 
 # You can choose that give tasks can be per player which means that every player has his own timer or
 # All players has the same timer
@@ -10,19 +10,12 @@ per-player-timer: false
 # Enable per-color timer (each color has its own cooldown per player)
 per-color-timer: true
 # Make sure to write them the right way
-colors:
-  Red:
-    time-value: 10
-    time-unit: seconds
-  Blue:
-    time-value: 10
-    time-unit: seconds
-  Green:
-    time-value: 10
-    time-unit: seconds
-  Yellow:
-    time-value: 10
-    time-unit: seconds
+allowed-colors:
+  Red: 10
+  Blue: 15
+  Green: 15
+  Yellow: 30
+
 
 # Enable or disable the daily limit based on player permissions
 limits-enabled: true

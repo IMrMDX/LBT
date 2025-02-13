@@ -35,11 +35,11 @@ public class ResetInterval implements InventoryProvider, Listener {
 
     @Override
     public void init(Player player, InventoryContents contents) {
-        contents.set(2,0,ClickableItem.of(new ItemBuilder(XMaterial.ARROW,"&cBack To Menu").build(),e->{
-            new LBTGUI().getSmartInventory().open(player);
-        }));
         contents.fillBorders(ClickableItem.empty(new ItemBuilder(XMaterial.GRAY_STAINED_GLASS_PANE,"&7")
                 .durability((short) 7).build()));
+        contents.set(2,0,ClickableItem.of(new ItemBuilder(XMaterial.ARROW,"&cBack To Menu").build(),ev->{
+            new LBTGUI().getSmartInventory().open(player);
+        }));
         contents.set(1,3, ClickableItem.of(new ItemBuilder(XMaterial.CLOCK, "&eSet the time of the reset-interval").build(),e->{
             nn.add(player);
             player.sendMessage(TextHandler.colorize("&6Please enter a number in the chat"));
@@ -50,10 +50,11 @@ public class ResetInterval implements InventoryProvider, Listener {
                     .title("&8Set Time Unit Of Reset-Interval")
                     .size(5,9)
                     .init((p,c)->{
+
+                        c.fillBorders(ClickableItem.empty(new ItemBuilder(XMaterial.GRAY_STAINED_GLASS_PANE, "&7").durability((short) 7).build()));
                         c.set(4,0,ClickableItem.of(new ItemBuilder(XMaterial.ARROW,"&cBack To Menu").build(),ev->{
                             this.getSmartInventory().open(player);
                         }));
-                        c.fillBorders(ClickableItem.empty(new ItemBuilder(XMaterial.GRAY_STAINED_GLASS_PANE, "&7").durability((short) 7).build()));
                         c.set(1,4,ClickableItem.empty(new ItemBuilder(XMaterial.GRAY_DYE, "&7Current Time-Unit&8: &6"+Main.getInstance().getSettingsConfig().getConfig().getString("reset-interval.time-unit"))
                                 .durability((short) 8)
                                 .build()));

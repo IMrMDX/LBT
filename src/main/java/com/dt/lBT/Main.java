@@ -12,13 +12,16 @@ import com.dt.lBT.utils.TextHandler;
 import com.dt.lBT.utils.UpdateChecker;
 import fr.minuskube.inv.InventoryManager;
 import lombok.Getter;
+import me.DenBeKKer.ntdLuckyBlock.api.exceptions.LuckyBlockNotLoadedException;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class Main extends JavaPlugin {
 
@@ -32,7 +35,6 @@ public final class Main extends JavaPlugin {
 
     private LeaderBoardManager leaderboardManager;
     private BukkitTask giveTask;
-    private List<String> allowedColors;
     ConsoleCommandSender console = Bukkit.getConsoleSender();
 
     @Override
@@ -41,13 +43,24 @@ public final class Main extends JavaPlugin {
         rh();
         rc();
         if (getServer().getPluginManager().isPluginEnabled("ntdLuckyBlock")) {
-            console.sendMessage(TextHandler.format("&7==================================="));
+            console.sendMessage(TextHandler.colorize("&7 __    __  ________  _______           __        _______  ________"));
+            console.sendMessage(TextHandler.colorize("&7 |  \\  |  \\|        \\|       \\         |  \\      |       \\|\\"));
+            console.sendMessage(TextHandler.colorize("&7 | $$\\ | $$ \\$$$$$$$$| $$$$$$$\\      | $$      | $$$$$$$    \\\\$$$$$$$$"));
+            console.sendMessage(TextHandler.colorize("&7 | $$$\\| $$   | $$   | $$  | $$ ______ | $$      | $$__/ $$    | $$  "));
+            console.sendMessage(TextHandler.colorize("&7 | $$$$\\ $$   | $$   | $$  | $$|      \\|$$      | $$    $$     | $$ "));
+            console.sendMessage(TextHandler.colorize("&7 | $$\\$$ $$   | $$   | $$  | $$ \\$$$$$$|$$      | $$$$$$$\\     | $$"));
+            console.sendMessage(TextHandler.colorize("&7 | $$ \\$$$$   | $$   | $$__/ $$        | $$_____ | $$__/ $$    | $$"));
+            console.sendMessage(TextHandler.colorize("&7 | $$ \\$$$$   | $$   | $$__/ $$        | $$_____ | $$__/ $$    | $$"));
+            console.sendMessage(TextHandler.colorize("&7 | $$ \\$$$$   | $$   | $$__/ $$        | $$_____ | $$__/ $$    | $$"));
+            console.sendMessage(TextHandler.colorize("&7  \\$$   \\$$    \\$$     \\$$$$$$$         \\$$$$$$$$ \\$$$$$$$     | $$"));
+
+            console.sendMessage(TextHandler.format("&7==========================================================================="));
             console.sendMessage(TextHandler.format(" "));
             console.sendMessage(TextHandler.format("&7( &entd-LuckyBlockTimer &8| &aEnabled &7)"));
             console.sendMessage(TextHandler.format(" "));
             console.sendMessage(TextHandler.format("&4&lPlease report any issue here&8: &fhttps://discord.gg/P8DCDMFfvZ"));
             console.sendMessage(TextHandler.format(" "));
-            console.sendMessage(TextHandler.format("&7==================================="));
+            console.sendMessage(TextHandler.format("&7============================================================================"));
 
             startGiveTask();
             luckyBlockTimerLimit.scheduleReset();
@@ -58,13 +71,24 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        console.sendMessage(TextHandler.format("&7==================================="));
+        console.sendMessage(TextHandler.colorize("&7 __    __  ________  _______           __        _______  ________"));
+        console.sendMessage(TextHandler.colorize("&7 |  \\  |  \\|        \\|       \\         |  \\      |       \\|\\"));
+        console.sendMessage(TextHandler.colorize("&7 | $$\\ | $$ \\$$$$$$$$| $$$$$$$\\      | $$      | $$$$$$$    \\\\$$$$$$$$"));
+        console.sendMessage(TextHandler.colorize("&7 | $$$\\| $$   | $$   | $$  | $$ ______ | $$      | $$__/ $$    | $$  "));
+        console.sendMessage(TextHandler.colorize("&7 | $$$$\\ $$   | $$   | $$  | $$|      \\|$$      | $$    $$     | $$ "));
+        console.sendMessage(TextHandler.colorize("&7 | $$\\$$ $$   | $$   | $$  | $$ \\$$$$$$|$$      | $$$$$$$\\     | $$"));
+        console.sendMessage(TextHandler.colorize("&7 | $$ \\$$$$   | $$   | $$__/ $$        | $$_____ | $$__/ $$    | $$"));
+        console.sendMessage(TextHandler.colorize("&7 | $$ \\$$$$   | $$   | $$__/ $$        | $$_____ | $$__/ $$    | $$"));
+        console.sendMessage(TextHandler.colorize("&7 | $$ \\$$$$   | $$   | $$__/ $$        | $$_____ | $$__/ $$    | $$"));
+        console.sendMessage(TextHandler.colorize("&7  \\$$   \\$$    \\$$     \\$$$$$$$         \\$$$$$$$$ \\$$$$$$$     | $$"));
+
+        console.sendMessage(TextHandler.format("&7==========================================================================="));
         console.sendMessage(TextHandler.format(" "));
         console.sendMessage(TextHandler.format("&7( &entd-LuckyBlockTimer &8| &cDisabled &7)"));
         console.sendMessage(TextHandler.format(" "));
         console.sendMessage(TextHandler.format("&4&lPlease report any issue here&8: &fhttps://discord.gg/P8DCDMFfvZ"));
         console.sendMessage(TextHandler.format(" "));
-        console.sendMessage(TextHandler.format("&7==================================="));
+        console.sendMessage(TextHandler.format("&7==========================================================================="));
 
         if (giveTask != null) {
             giveTask.cancel();
@@ -114,25 +138,53 @@ public final class Main extends JavaPlugin {
         }
 
         boolean perPlayerTimer = settingsConfig.getConfig().getBoolean("per-player-timer");
-        int giveTimer = (int) (20L * settingsConfig.getConfig().getInt("givetimer"));
+        boolean perColorTimer = settingsConfig.getConfig().getBoolean("per-color-timer");
+        int defaultGiveTimer = settingsConfig.getConfig().getInt("givetimer") * 20;
+
+        ConfigurationSection colorTimersSection = settingsConfig.getConfig().getConfigurationSection("allowed-colors");
 
         if (perPlayerTimer) {
-            Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
-            for (Player player : onlinePlayers) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
                 Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
                     handlePlayerLuckyBlockAsync(player);
-                }, 0L, giveTimer);
+                }, 0L, defaultGiveTimer);
             }
-        } else {
-            giveTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
-                Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
-                if (!onlinePlayers.isEmpty()) {
-                    for (Player player : onlinePlayers) {
-                        handlePlayerLuckyBlockAsync(player);
-                    }
-                }
-            }, 0L, giveTimer);
         }
+        else if (perColorTimer && colorTimersSection != null) {
+            for (String color : colorTimersSection.getKeys(false)) {
+                int colorGiveTimer = colorTimersSection.getInt(color) * 20;
+
+                Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        handlePlayerLuckyBlockAsync(player, color);
+                    }
+                }, 0L, colorGiveTimer);
+            }
+        } else if (perColorTimer && perPlayerTimer) {
+            Logger.log(Logger.LogLevel.ERROR,"&cYou must only choose whether perplayertimer or percolortimer not both. Selecting to normal timer.");
+            giveTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    handlePlayerLuckyBlockAsync(player, null);
+                }
+            }, 0L, defaultGiveTimer);
+        }else{
+            giveTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    handlePlayerLuckyBlockAsync(player, null);
+                }
+            }, 0L, defaultGiveTimer);
+        }
+    }
+
+    private void handlePlayerLuckyBlockAsync(Player player, String color) {
+        Bukkit.getScheduler().runTask(this, () -> {
+            LuckyBlockTimerLimit timerLimit = getLuckyBlockTimerLimit();
+            try {
+                timerLimit.giveLuckyBlock(player, color);
+            } catch (LuckyBlockNotLoadedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private void handlePlayerLuckyBlockAsync(Player player) {
@@ -152,7 +204,11 @@ public final class Main extends JavaPlugin {
                     return;
                 }
                 playerDataManager.setReachedLimit(playerUUID, true);
-                luckyBlockTimerLimit.giveLuckyBlock(player);
+                try {
+                    luckyBlockTimerLimit.giveLuckyBlock(player);
+                } catch (LuckyBlockNotLoadedException e) {
+                    throw new RuntimeException(e);
+                }
                 if (hasReachedLimit) {
                     playerDataManager.setReachedLimit(playerUUID, false);
                 }
@@ -161,20 +217,38 @@ public final class Main extends JavaPlugin {
     }
 
     public void loadAllowedColors() {
-        allowedColors = settingsConfig.getConfig().getStringList("colors");
+        ConfigurationSection section = settingsConfig.getConfig().getConfigurationSection("allowed-colors");
 
-        if (allowedColors.isEmpty()) {
+        if (section == null || section.getKeys(false).isEmpty()) {
             Logger.log(Logger.LogLevel.ERROR, "&4No colors found in settings.yml, defaulting to basic colors.");
-            allowedColors = List.of("Red", "Blue", "Green", "Yellow");
+            section = settingsConfig.getConfig().createSection("allowed-colors");
 
-            settingsConfig.getConfig().set("allowed_colors", allowedColors);
+            Map<String, Integer> defaultColors = Map.of(
+                    "Red", 5,
+                    "Blue", 7,
+                    "Green", 3,
+                    "Yellow", 10
+            );
+
+            for (Map.Entry<String, Integer> entry : defaultColors.entrySet()) {
+                section.set(entry.getKey(), entry.getValue());
+            }
             settingsConfig.save();
         }
+
+        Logger.log(Logger.LogLevel.INFO, "Loaded Allowed Colors:");
     }
 
     public String getRandomAllowedColor() {
-        Random random = new Random();
-        return allowedColors.get(random.nextInt(allowedColors.size()));
+        ConfigurationSection section = settingsConfig.getConfig().getConfigurationSection("allowed-colors");
+
+        if (section == null || section.getKeys(false).isEmpty()) {
+            getLogger().warning("Allowed colors list is empty or not loaded!");
+            return "Yellow";
+        }
+
+        List<String> colors = new ArrayList<>(section.getKeys(false));
+        return colors.get(ThreadLocalRandom.current().nextInt(colors.size()));
     }
     public void rc(){
         commandManagerimpl.registerAll(this,

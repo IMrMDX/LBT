@@ -1,11 +1,15 @@
 package com.dt.lBT.manager;
 
+import com.cryptomorin.xseries.XItemStack;
 import com.dt.lBT.Main;
 import com.dt.lBT.utils.Logger;
 
+import me.DenBeKKer.ntdLuckyBlock.LBMain;
+import me.DenBeKKer.ntdLuckyBlock.api.exceptions.LuckyBlockNotLoadedException;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -28,12 +32,15 @@ public class LuckyBlockTimerLimit {
             Logger.log(Logger.LogLevel.INFO, "Reset interval is disabled in the configuration. Player lucky block counts will not be reset.");
             return;
         }
-
         if (resetTaskId != -1) {
             Bukkit.getScheduler().cancelTask(resetTaskId);
         }
 
         resetIntervalTicks = getResetIntervalFromConfig();
+        if (resetIntervalTicks <= 0) {
+            Logger.log(Logger.LogLevel.ERROR, "Invalid reset interval. Using default value of 30 seconds.");
+            resetIntervalTicks = 30 * 20L;
+        }
         nextResetTime = LocalDateTime.now().plusSeconds(resetIntervalTicks / 20);
 
         if (perPlayerTimer) {
@@ -82,22 +89,35 @@ public class LuckyBlockTimerLimit {
         }
         return Duration.between(LocalDateTime.now(), nextResetTime);
     }
+    public void giveLuckyBlock(Player player, String color) throws LuckyBlockNotLoadedException {
+        if (color == null) {
+            color = Main.getInstance().getRandomAllowedColor();
+        }
+        if (LBMain.LuckyBlockType.parse(color) == null){
+            Logger.log(Logger.LogLevel.ERROR, "&cInvalid color &6"+color);
+            return;
+        }
+        ItemStack stack = LBMain.LuckyBlockType.parse(color).get().getSkull();
+        player.getInventory().addItem(stack);
 
+        playerDataManager.setLuckyBlockCount(player.getUniqueId(),
+                playerDataManager.getLuckyBlockCount(player.getUniqueId()) + 1);
+    }
 
-    public void giveLuckyBlock(Player player) {
+    public void giveLuckyBlock(Player player) throws LuckyBlockNotLoadedException {
         if (limitsEnabled) {
             String randomColor = Main.getInstance().getRandomAllowedColor();
+            ItemStack stack = LBMain.LuckyBlockType.parse(randomColor).get().getSkull();
 //            String command = Main.getInstance().getSettingsConfig().getConfig().getString("command")
 //                    .replace("{player}",player.getName())
 //                    .replace("{random}",randomColor);
-            String command = "lb give " + player.getName() + " " + randomColor.toLowerCase() + " -silent";
-            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
-
+            player.getInventory().addItem(stack);
             playerDataManager.setLuckyBlockCount(player.getUniqueId(), playerDataManager.getLuckyBlockCount(player.getUniqueId()) + 1);
         }else{
             String randomColor = Main.getInstance().getRandomAllowedColor();
-            String command = "lb give " + player.getName() + " " + randomColor.toLowerCase() + " -silent";
-            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
+            ItemStack stack = LBMain.LuckyBlockType.parse(randomColor).get().getSkull();
+            player.getInventory().addItem(stack);
+
         }
     }
 

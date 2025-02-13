@@ -11,6 +11,7 @@ import fr.minuskube.inv.SmartInventory;
 import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
 import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -38,7 +39,9 @@ public class AllowedColorsGUI implements InventoryProvider, Listener {
 
     @Override
     public void init(Player player, InventoryContents contents) {
-        List<String> allowedColors = Main.getInstance().getSettingsConfig().getConfig().getStringList("colors");
+
+
+        ConfigurationSection section = Main.getInstance().getSettingsConfig().getConfig().getConfigurationSection("allowed-colors");
 
         contents.fillBorders(ClickableItem.empty(new ItemBuilder(XMaterial.GRAY_STAINED_GLASS_PANE, "&7")
                 .durability((short) 7)
@@ -48,7 +51,7 @@ public class AllowedColorsGUI implements InventoryProvider, Listener {
                 .durability((short) 7)
                 .build(), e -> {
             playersAddingColor.add(player);
-            getSmartInventory().close(player);
+            smartInventory.close(player);
             player.sendMessage(TextHandler.colorize("&ePlease enter a valid name for a lucky block"));
         }));
 
@@ -56,7 +59,10 @@ public class AllowedColorsGUI implements InventoryProvider, Listener {
             new LBTGUI().getSmartInventory().open(player);
         }));
 
-        if (!allowedColors.isEmpty()) {
+        if (section != null && !section.getKeys(false).isEmpty()) {
+            Set<String> allowedColors = section.getKeys(false);
+
+
             BukkitRunnable task = new BukkitRunnable() {
                 final Iterator<String> iterator = allowedColors.iterator();
                 int currentRow = 1;
@@ -70,21 +76,16 @@ public class AllowedColorsGUI implements InventoryProvider, Listener {
                         return;
                     }
                     String color = iterator.next();
-                    ItemStack armorStandItem = new ItemBuilder(XMaterial.ARMOR_STAND)
+                    ItemStack colorItem = new ItemBuilder(XMaterial.ARMOR_STAND)
                             .displayname("&7Color&8: &6" + color)
                             .build();
-                    ClickableItem clickableItem = ClickableItem.of(armorStandItem, e -> {
+
+                    ClickableItem clickableItem = ClickableItem.of(colorItem, e -> {
                         if (e.isLeftClick()) {
-                            List<String> updatedColors = Main.getInstance().getSettingsConfig().getConfig().getStringList("allowed_colors");
-
-                            if (updatedColors.contains(color)) {
-                                updatedColors.remove(color);
-                                Main.getInstance().getSettingsConfig().getConfig().set("colors", updatedColors);
-                                Main.getInstance().getSettingsConfig().save();
-
-                                player.sendMessage(TextHandler.colorize("&aColor &b" + color + " &ahas been removed."));
-                                getSmartInventory().open(player);
-                            }
+                            Main.getInstance().getSettingsConfig().getConfig().set("allowed-colors." + color, null);
+                            Main.getInstance().getSettingsConfig().save();
+                            player.sendMessage(TextHandler.colorize("&aColor &b" + color + " &ahas been removed."));
+                            smartInventory.open(player);
                         }
                     });
 
@@ -101,33 +102,19 @@ public class AllowedColorsGUI implements InventoryProvider, Listener {
 
             task.runTaskTimer(Main.getInstance(), 0L, 6L);
             runningTasks.put(player, task);
-        } else {
-            player.sendMessage(TextHandler.colorize("&cNo colors found in the config!"));
         }
-
-        contents.fillBorders(ClickableItem.empty(new ItemBuilder(XMaterial.GRAY_STAINED_GLASS_PANE,"&7")
-                .durability((short) 7)
-                .build()));
-        contents.set(5, 4, ClickableItem.of(new ItemBuilder(XMaterial.GRAY_DYE, "&aAdd LuckyBlock Color")
-                .durability((short) 7)
-                .build(), e -> {
-            playersAddingColor.add(player);
-            this.getSmartInventory().close(player);
-            player.sendMessage(TextHandler.colorize("&ePlease enter a valid name for a lucky block"));
-        }));
-        contents.set(5,0,ClickableItem.of(new ItemBuilder(XMaterial.ARROW,"&cBack To Menu").build(),e->{
-            new LBTGUI().getSmartInventory().open(player);
-        }));
     }
-
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         Player player = (Player) event.getPlayer();
+        String invTitle = event.getView().getTitle();
 
-        if (runningTasks.containsKey(player)) {
-            runningTasks.get(player).cancel();
-            runningTasks.remove(player);
+        if (invTitle.equals(TextHandler.colorize("&8Colors"))) {
+            if (runningTasks.containsKey(player)) {
+                runningTasks.get(player).cancel();
+                runningTasks.remove(player);
+            }
         }
     }
     @Override

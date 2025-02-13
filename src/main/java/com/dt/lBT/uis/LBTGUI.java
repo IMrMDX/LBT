@@ -11,7 +11,9 @@ import fr.minuskube.inv.SmartInventory;
 import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
 import lombok.Getter;
+import me.DenBeKKer.ntdLuckyBlock.LBMain;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -98,7 +100,7 @@ public class LBTGUI implements InventoryProvider , Listener {
                                     this.getSmartInventory().close(player);
                                 }
                             }));
-                            c.set(4,0,ClickableItem.of(new ItemBuilder(XMaterial.ARROW,"&cBack To Menu").build(),ev->{
+                            c.set(3,0,ClickableItem.of(new ItemBuilder(XMaterial.ARROW,"&cBack To Menu").build(),ev->{
                                 new LBTGUI().getSmartInventory().open(player);
                             }));
                             col++;
@@ -200,16 +202,21 @@ public class LBTGUI implements InventoryProvider , Listener {
 
             Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
                 ConfirmationMenuNoLore.getConfirmationInventory(() -> {
-                    List<String> allowedColors = Main.getInstance().getSettingsConfig().getConfig().getStringList("colors");
                     if (!newColor.trim().isEmpty()) {
-                        if (!allowedColors.contains(newColor)) {
-                            allowedColors.add(newColor);
-                            Main.getInstance().getSettingsConfig().getConfig().set("colors", allowedColors);
-                            Main.getInstance().getSettingsConfig().getConfig().set("colors."+newColor+".timer",10);
+                        ConfigurationSection section = Main.getInstance().getSettingsConfig().getConfig().getConfigurationSection("allowed-colors");
+
+                        if (section == null) {
+                            Main.getInstance().getSettingsConfig().getConfig().createSection("allowed-colors");
+                            section = Main.getInstance().getSettingsConfig().getConfig().getConfigurationSection("allowed-colors");
+                        }
+
+                        if (section.getKeys(false).contains(newColor)) {
+                            player.sendMessage(TextHandler.colorize("&cColor &b" + newColor + " &cis already in the allowed colors list."));
+                        } else {
+
+                            section.set(newColor, 10);
                             Main.getInstance().getSettingsConfig().save();
                             player.sendMessage(TextHandler.colorize("&aColor &b" + newColor + " &ahas been added."));
-                        } else {
-                            player.sendMessage(TextHandler.colorize("&cColor &b" + newColor + " &cis already in the allowed colors list."));
                         }
                         AllowedColorsGUI.playersAddingColor.remove(player);
                         new AllowedColorsGUI().getSmartInventory().open(player);

@@ -1,5 +1,5 @@
 name: ntd-LBT
-version: '1.0.6'
+version: '1.0.8'
 main: com.dt.lBT.Main
 author: MrMDX
 api-version: '1.13'
